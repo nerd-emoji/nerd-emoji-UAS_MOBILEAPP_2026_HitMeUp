@@ -15,7 +15,42 @@ import 'settings.dart';
 import '../auth/sign_in_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
-  const ProfileScreen({super.key});
+  const ProfileScreen({
+    super.key,
+    this.testSkipInitialization = false,
+    this.testInitialDiamondBalance,
+    this.testInitialIsLoadingProfile,
+    this.testInitialProfileError,
+    this.testInitialName,
+    this.testInitialBirthday,
+    this.testInitialGender,
+    this.testInitialLocation,
+    this.testInitialWantToMeet,
+    this.testInitialShowBirthday,
+    this.testInitialProfilePictureUrl,
+    this.testInitialInterests,
+    this.testOnNavigateToEditProfile,
+    this.testOnNavigateToSettings,
+    this.testOnSignOutConfirmed,
+    this.testOnBottomNavTap,
+  });
+
+  final bool testSkipInitialization;
+  final int? testInitialDiamondBalance;
+  final bool? testInitialIsLoadingProfile;
+  final String? testInitialProfileError;
+  final String? testInitialName;
+  final String? testInitialBirthday;
+  final String? testInitialGender;
+  final String? testInitialLocation;
+  final String? testInitialWantToMeet;
+  final bool? testInitialShowBirthday;
+  final String? testInitialProfilePictureUrl;
+  final List<String>? testInitialInterests;
+  final VoidCallback? testOnNavigateToEditProfile;
+  final VoidCallback? testOnNavigateToSettings;
+  final VoidCallback? testOnSignOutConfirmed;
+  final ValueChanged<int>? testOnBottomNavTap;
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -82,6 +117,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
+    if (widget.testSkipInitialization) {
+      _diamondBalance = widget.testInitialDiamondBalance ?? _diamondBalance;
+      _isLoadingProfile = widget.testInitialIsLoadingProfile ?? false;
+      _profileError = widget.testInitialProfileError;
+      _name = widget.testInitialName ?? _name;
+      _birthday = widget.testInitialBirthday ?? _birthday;
+      _gender = widget.testInitialGender ?? _gender;
+      _location = widget.testInitialLocation ?? _location;
+      _wantToMeet = widget.testInitialWantToMeet ?? _wantToMeet;
+      _showBirthday = widget.testInitialShowBirthday ?? _showBirthday;
+      _profilePictureUrl = widget.testInitialProfilePictureUrl;
+      if (widget.testInitialInterests != null) {
+        _interests = List<String>.from(widget.testInitialInterests!);
+      }
+      return;
+    }
     _hydrateFromSession();
     _loadProfileFromApi();
   }
@@ -412,7 +463,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         width: 37,
                         height: 37,
                         child: GestureDetector(
-                          onTap: _handleSettingsTap,
+                            onTap: _handleSettingsTap,
                           child: Image.asset(
                             'assets/setting-icon.png',
                             fit: BoxFit.contain,
@@ -431,7 +482,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         width: 37,
                         height: 37,
                         child: GestureDetector(
-                          onTap: _handleSignOut,
+                            onTap: _handleSignOut,
                           child: Image.asset(
                             'assets/SignOut.png',
                             fit: BoxFit.contain,
@@ -560,6 +611,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _navigateToEditProfile() async {
+    if (widget.testOnNavigateToEditProfile != null) {
+      widget.testOnNavigateToEditProfile!();
+      return;
+    }
+
     final result = await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => EditProfileScreen(
@@ -586,6 +642,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _handleBottomNavTap(int index) {
+    if (widget.testOnBottomNavTap != null) {
+      widget.testOnBottomNavTap!(index);
+      return;
+    }
+
     if (index == _selectedBottomNavIndex) {
       return;
     }
@@ -615,6 +676,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _handleSettingsTap() async {
+    if (widget.testOnNavigateToSettings != null) {
+      widget.testOnNavigateToSettings!();
+      return;
+    }
+
     await Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => const SettingsScreen()),
     );
@@ -663,6 +729,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     height: 48,
                     child: ElevatedButton(
                       onPressed: () async {
+                        if (widget.testOnSignOutConfirmed != null) {
+                          Navigator.pop(context, true);
+                          widget.testOnSignOutConfirmed!();
+                          return;
+                        }
+
                         Navigator.pop(context, true);
                         await AuthSession.instance.clear();
                         if (!mounted) {

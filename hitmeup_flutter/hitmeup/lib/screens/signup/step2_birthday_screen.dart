@@ -143,36 +143,42 @@ class _Step3BirthdayScreenState extends State<Step3BirthdayScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Expanded(
-              child: Text(
-                'Show on profile',
-                style: _inputTextStyle.copyWith(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: const Color(0xFF6B6B6B),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Text(
+                  'Show on profile',
+                  style: _inputTextStyle.copyWith(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: const Color(0xFF6B6B6B),
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
-                overflow: TextOverflow.ellipsis,
               ),
             ),
             const SizedBox(width: 8),
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              width: 18,
-              height: 18,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: _showOnProfile ? Colors.black : Colors.transparent,
-                border: Border.all(
-                  color: Colors.black,
-                  width: 1.5,
+            Padding(
+              padding: const EdgeInsets.all(8),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                width: 18,
+                height: 18,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: _showOnProfile ? Colors.black : Colors.transparent,
+                  border: Border.all(
+                    color: Colors.black,
+                    width: 1.5,
+                  ),
                 ),
+                child: _showOnProfile
+                    ? const Icon(
+                        Icons.check,
+                        size: 12,
+                        color: Colors.white,
+                      )
+                    : null,
               ),
-              child: _showOnProfile
-                  ? const Icon(
-                      Icons.check,
-                      size: 12,
-                      color: Colors.white,
-                    )
-                  : null,
             ),
           ],
         ),

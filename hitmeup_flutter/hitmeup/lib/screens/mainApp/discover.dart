@@ -10,7 +10,6 @@ import 'requests.dart';
 import '../../services/api_config.dart';
 import '../../services/auth_session.dart';
 import '../../theme/app_theme.dart';
-import '../../utils/discover_utils.dart';
 
 class SwipeCardScreen extends StatefulWidget {
   const SwipeCardScreen({super.key});

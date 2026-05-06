@@ -20,6 +20,8 @@ class Step6InterestsScreen extends StatefulWidget {
     required this.showBirthday,
     required this.location,
     this.meetGender,
+    this.testOnNavigate,
+    this.testForceLoading = false,
   });
 
   final String name;
@@ -30,6 +32,8 @@ class Step6InterestsScreen extends StatefulWidget {
   final bool showBirthday;
   final String location;
   final String? meetGender;
+  final void Function(String name, String email, String password, String gender, DateTime birthday, bool showBirthday, String location, String? meetGender, List<String> interests)? testOnNavigate;
+  final bool testForceLoading;
 
   @override
   State<Step6InterestsScreen> createState() => _Step6InterestsScreenState();
@@ -132,104 +136,106 @@ class _Step6InterestsScreenState extends State<Step6InterestsScreen> {
                 top: false,
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Center(
-                        child: StepIndicator(totalSteps: 6, currentStep: 5),
-                      ),
-                      const SizedBox(height: 8),
-                      _buildHeaderCard(),
-                      const SizedBox(height: 32),
-                      ..._categories.entries.map((entry) {
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 20),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                entry.key,
-                                style: _optionTextStyle.copyWith(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.textDark,
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Center(
+                          child: StepIndicator(totalSteps: 6, currentStep: 5),
+                        ),
+                        const SizedBox(height: 8),
+                        _buildHeaderCard(),
+                        const SizedBox(height: 32),
+                        ..._categories.entries.map((entry) {
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 20),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  entry.key,
+                                  style: _optionTextStyle.copyWith(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.white,
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(height: 14),
-                              SizedBox(
-                                height: 34,
-                                child: ListView.separated(
-                                  scrollDirection: Axis.horizontal,
-                                  itemCount: entry.value.length,
-                                  separatorBuilder: (_, __) =>
-                                      const SizedBox(width: 8),
-                                  itemBuilder: (_, i) {
-                                    final item = entry.value[i];
-                                    final isSelected =
-                                        _selectedInterests[entry.key] == item;
-                                    return GestureDetector(
-                                      onTap: () => setState(() {
-                                        if (_selectedInterests[entry.key] ==
-                                            item) {
-                                          _selectedInterests[entry.key] = null;
-                                        } else {
-                                          _selectedInterests[entry.key] = item;
-                                        }
-                                      }),
-                                      child: AnimatedContainer(
-                                        duration:
-                                            const Duration(milliseconds: 200),
-                                        width: 99,
-                                        height: 34,
-                                        decoration: BoxDecoration(
-                                          color: isSelected
-                                              ? AppColors.blueBottom
-                                              : Colors.white,
-                                          borderRadius:
-                                              BorderRadius.circular(10),
-                                          border: Border.all(
+                                const SizedBox(height: 14),
+                                SizedBox(
+                                  height: 34,
+                                  child: ListView.separated(
+                                    scrollDirection: Axis.horizontal,
+                                    itemCount: entry.value.length,
+                                    separatorBuilder: (_, __) =>
+                                        const SizedBox(width: 8),
+                                    itemBuilder: (_, i) {
+                                      final item = entry.value[i];
+                                      final isSelected =
+                                          _selectedInterests[entry.key] == item;
+                                      return GestureDetector(
+                                        onTap: () => setState(() {
+                                          if (_selectedInterests[entry.key] ==
+                                              item) {
+                                            _selectedInterests[entry.key] = null;
+                                          } else {
+                                            _selectedInterests[entry.key] = item;
+                                          }
+                                        }),
+                                        child: AnimatedContainer(
+                                          duration:
+                                              const Duration(milliseconds: 200),
+                                          width: 99,
+                                          height: 34,
+                                          decoration: BoxDecoration(
                                             color: isSelected
                                                 ? AppColors.blueBottom
-                                                : Colors.grey.shade300,
-                                          ),
-                                        ),
-                                        child: Center(
-                                          child: Text(
-                                            item,
-                                            textAlign: TextAlign.center,
-                                            style: _optionTextStyle.copyWith(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.w600,
+                                                : Colors.white,
+                                            borderRadius:
+                                                BorderRadius.circular(10),
+                                            border: Border.all(
                                               color: isSelected
-                                                  ? Colors.white
-                                                  : AppColors.textDark,
+                                                  ? AppColors.blueBottom
+                                                  : Colors.grey.shade300,
+                                            ),
+                                          ),
+                                          child: Center(
+                                            child: Text(
+                                              item,
+                                              textAlign: TextAlign.center,
+                                              style: _optionTextStyle.copyWith(
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.w600,
+                                                color: isSelected
+                                                    ? Colors.white
+                                                    : AppColors.textDark,
+                                              ),
                                             ),
                                           ),
                                         ),
-                                      ),
-                                    );
-                                  },
+                                      );
+                                    },
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
+                          );
+                        }),
+                        if (_submitError != null) ...[
+                          Text(
+                            _submitError!,
+                            style: _inputTextStyle.copyWith(
+                              fontSize: 12,
+                              color: const Color(0xFFFFD8D8),
+                            ),
                           ),
-                        );
-                      }),
-                      if (_submitError != null) ...[
-                        Text(
-                          _submitError!,
-                          style: _inputTextStyle.copyWith(
-                            fontSize: 12,
-                            color: const Color(0xFFFFD8D8),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
+                          const SizedBox(height: 12),
+                        ],
+                        const SizedBox(height: 40),
+                        _buildContinueButton(context),
                       ],
-                      const SizedBox(height: 40),
-                      _buildContinueButton(context),
-                    ],
+                    ),
                   ),
                 ),
               ),
@@ -270,8 +276,9 @@ class _Step6InterestsScreenState extends State<Step6InterestsScreen> {
           ),
           const SizedBox(height: 4),
           Text(
-            "We'll recommend people you have more in common with",
+            "We'll recommend people you have more in \ncommon with",
             style: _inputTextStyle.copyWith(
+              height: 1.5,
               fontSize: 12,
               color: const Color(0xFF636363),
             ),
@@ -288,6 +295,21 @@ class _Step6InterestsScreenState extends State<Step6InterestsScreen> {
         .where((interest) => interest != null)
         .cast<String>()
         .toList();
+
+    if (widget.testOnNavigate != null) {
+      widget.testOnNavigate!(
+        widget.name,
+        widget.email,
+        widget.password,
+        widget.gender,
+        widget.birthday,
+        widget.showBirthday,
+        widget.location,
+        widget.meetGender,
+        selectedInterests,
+      );
+      return;
+    }
 
     final payload = {
       'name': widget.name,
@@ -430,7 +452,7 @@ class _Step6InterestsScreenState extends State<Step6InterestsScreen> {
           ),
         ),
         onPressed: _isSubmitting ? null : _submitSignup,
-        child: _isSubmitting
+        child: (_isSubmitting || widget.testForceLoading)
             ? const SizedBox(
                 width: 22,
                 height: 22,

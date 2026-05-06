@@ -14,11 +14,39 @@ class AiChatScreen extends StatefulWidget {
     this.contextUserId,
     this.contextCommunityId,
     this.contextTitle,
+    this.testSkipInitialization = false,
+    this.testInitialIsLoading,
+    this.testInitialIsInitializingChat,
+    this.testInitialMessages,
+    this.testInitialRecommendedProfiles,
+    this.testInitialMainUserProfileUrl,
+    this.testInitialAiChatId,
+    this.testInitialHasMoreOlderMessages,
+    this.testInitialPlayingVoiceUrl,
+    this.testInitialIsVoicePlaying,
+    this.testOnSendMessage,
+    this.testOnVoicePlayback,
+    this.testOnFriendRequest,
+    this.testOnLoadOlderMessages,
   });
 
   final int? contextUserId;
   final int? contextCommunityId;
   final String? contextTitle;
+  final bool testSkipInitialization;
+  final bool? testInitialIsLoading;
+  final bool? testInitialIsInitializingChat;
+  final List<Map<String, dynamic>>? testInitialMessages;
+  final Map<int, Map<String, dynamic>>? testInitialRecommendedProfiles;
+  final String? testInitialMainUserProfileUrl;
+  final int? testInitialAiChatId;
+  final bool? testInitialHasMoreOlderMessages;
+  final String? testInitialPlayingVoiceUrl;
+  final bool? testInitialIsVoicePlaying;
+  final void Function(String text)? testOnSendMessage;
+  final void Function(String rawVoiceUrl)? testOnVoicePlayback;
+  final void Function(int receiverId)? testOnFriendRequest;
+  final Future<void> Function()? testOnLoadOlderMessages;
 
   @override
   State<AiChatScreen> createState() => _AiChatScreenState();
@@ -95,6 +123,20 @@ class _AiChatScreenState extends State<AiChatScreen> {
         _playingVoiceUrl = null;
       });
     });
+
+    if (widget.testSkipInitialization) {
+      _isLoading = widget.testInitialIsLoading ?? false;
+      _isInitializingChat = widget.testInitialIsInitializingChat ?? false;
+      _aiChatId = widget.testInitialAiChatId;
+      _messages = List<Map<String, dynamic>>.from(widget.testInitialMessages ?? const []);
+      _mainUserProfileUrl = widget.testInitialMainUserProfileUrl;
+      _hasMoreOlderMessages = widget.testInitialHasMoreOlderMessages ?? true;
+      _playingVoiceUrl = widget.testInitialPlayingVoiceUrl;
+      _isVoicePlaying = widget.testInitialIsVoicePlaying ?? false;
+      _recommendedProfiles.addAll(widget.testInitialRecommendedProfiles ?? const {});
+      return;
+    }
+
     _initializeChat();
   }
 
@@ -265,6 +307,11 @@ class _AiChatScreenState extends State<AiChatScreen> {
   }
 
   Future<void> _loadOlderMessages() async {
+    if (widget.testOnLoadOlderMessages != null) {
+      await widget.testOnLoadOlderMessages!();
+      return;
+    }
+
     final chatId = _aiChatId;
     if (chatId == null || _isLoading || _isLoadingMoreMessages || !_hasMoreOlderMessages || _messages.isEmpty) {
       return;
@@ -336,6 +383,12 @@ class _AiChatScreenState extends State<AiChatScreen> {
   Future<void> _sendMessage() async {
     final text = _controller.text.trim();
     if (text.isEmpty) {
+      return;
+    }
+
+    if (widget.testOnSendMessage != null) {
+      _controller.clear();
+      widget.testOnSendMessage!(text);
       return;
     }
 
@@ -454,6 +507,11 @@ class _AiChatScreenState extends State<AiChatScreen> {
   }
 
   Future<void> _toggleVoicePlayback(String rawVoiceUrl) async {
+    if (widget.testOnVoicePlayback != null) {
+      widget.testOnVoicePlayback!(rawVoiceUrl);
+      return;
+    }
+
     final resolvedUrl = _resolveMediaUrl(rawVoiceUrl);
     try {
       if (_playingVoiceUrl == resolvedUrl && _isVoicePlaying) {
@@ -643,6 +701,11 @@ class _AiChatScreenState extends State<AiChatScreen> {
   }
 
   Future<void> _sendFriendRequestToUser(int receiverId) async {
+    if (widget.testOnFriendRequest != null) {
+      widget.testOnFriendRequest!(receiverId);
+      return;
+    }
+
     final requesterId = AuthSession.instance.userId;
     if (requesterId == null) {
       if (mounted) {

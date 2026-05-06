@@ -24,6 +24,13 @@ class EditProfileScreen extends StatefulWidget {
     required this.initialWantToMeet,
     this.initialProfilePictureUrl,
     required this.initialInterests,
+    this.testSkipInitialization = false,
+    this.testForceLocationLoading = false,
+    this.testLocationSuggestions,
+    this.testShowLocationSuggestions = false,
+    this.testImagePickerResult,
+    this.testOnSave,
+    this.testOnNavigateBack,
   });
 
   final String initialName;
@@ -33,6 +40,14 @@ class EditProfileScreen extends StatefulWidget {
   final String initialWantToMeet;
   final String? initialProfilePictureUrl;
   final List<String> initialInterests;
+  
+  final bool testSkipInitialization;
+  final bool testForceLocationLoading;
+  final List<String>? testLocationSuggestions;
+  final bool testShowLocationSuggestions;
+  final Uint8List? testImagePickerResult;
+  final Function(Map<String, dynamic>)? testOnSave;
+  final VoidCallback? testOnNavigateBack;
 
   @override
   State<EditProfileScreen> createState() => _EditProfileScreenState();
@@ -141,8 +156,19 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         .toList();
     _profilePictureUrl =
         _resolveProfilePictureUrl(widget.initialProfilePictureUrl);
-    _locationSuggestions =
-        _getLocalLocationSuggestions(_locationController.text);
+    
+    if (widget.testForceLocationLoading) {
+      _isLocationLoading = true;
+    }
+    if (widget.testShowLocationSuggestions) {
+      _hasLocationInputChanged = true;
+    }
+    if (widget.testLocationSuggestions != null) {
+      _locationSuggestions = widget.testLocationSuggestions!;
+    } else {
+      _locationSuggestions =
+          _getLocalLocationSuggestions(_locationController.text);
+    }
   }
 
   @override
@@ -1027,6 +1053,18 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     });
 
     try {
+      // Test override: skip permission and use test image bytes directly
+      if (widget.testImagePickerResult != null) {
+        if (!mounted) {
+          return;
+        }
+
+        setState(() {
+          _pickedProfileImageBytes = widget.testImagePickerResult;
+        });
+        return;
+      }
+
       final hasPermission = await _ensureGalleryPermission();
       if (!hasPermission || !mounted) {
         return;
@@ -1196,6 +1234,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       _isSaving = true;
       _saveError = null;
     });
+
+    // Test override: call testOnSave callback instead of making network request
+    if (widget.testOnSave != null) {
+      widget.testOnSave!(payload);
+      setState(() {
+        _isSaving = false;
+      });
+      return;
+    }
 
     final uri = Uri.parse('${ApiConfig.baseUrl}/api/users/$userId/edit-user/');
 
