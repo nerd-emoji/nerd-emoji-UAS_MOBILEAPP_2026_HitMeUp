@@ -4,6 +4,8 @@ import 'package:integration_test/integration_test.dart';
 import 'package:hitmeup/screens/mainApp/create_community_screen.dart';
 import 'package:hitmeup/services/auth_session.dart';
 import 'dart:typed_data';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/services.dart';
 
 Future<Map<String, dynamic>> _fakeCreateSuccess({
   required String name,
@@ -36,8 +38,34 @@ Future<void> _fakeAddUserFail({required int userId, required int communityId}) a
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
+  setUpAll(() async {
+    // Prevent MissingPluginException from audio/record plugins during tests
+    SharedPreferences.setMockInitialValues({});
+    final MethodChannel recordChannel = const MethodChannel('com.llfbandit.record/messages');
+    recordChannel.setMockMethodCallHandler((call) async {
+      return null;
+    });
+
+    final MethodChannel audioChannel = const MethodChannel('xyz.luan/audioplayers.global');
+    audioChannel.setMockMethodCallHandler((call) async {
+      return null;
+    });
+
+    // Also mock the main audioplayers channel used for 'create' calls
+    final MethodChannel audioCreateChannel = const MethodChannel('xyz.luan/audioplayers');
+    audioCreateChannel.setMockMethodCallHandler((call) async {
+      return null;
+    });
+
+    // Mock the audio events event channel to avoid listener errors
+    ServicesBinding.instance.defaultBinaryMessenger.setMockMessageHandler(
+      'xyz.luan/audioplayers.global/events',
+      (message) async => null,
+    );
+  });
+
   testWidgets('create community screen integration smoke test', (tester) async {
-    await tester.pumpWidget(MaterialApp(home: CreateCommunityScreen(testCreateCommunity: _fakeCreateSuccess)));
+    await tester.pumpWidget(MaterialApp(home: CreateCommunityScreen(testCreateCommunity: _fakeCreateSuccess, testSkipNavigation: true)));
 
     // Basic smoke checks
     expect(find.byType(Scaffold), findsOneWidget);
@@ -51,7 +79,7 @@ void main() {
 
   testWidgets('successful create shows success snackbar', (tester) async {
     await tester.pumpWidget(MaterialApp(
-      home: CreateCommunityScreen(testCreateCommunity: _fakeCreateSuccess),
+      home: CreateCommunityScreen(testCreateCommunity: _fakeCreateSuccess, testSkipNavigation: true),
     ));
 
     // Fill form
@@ -67,7 +95,7 @@ void main() {
 
   testWidgets('create failure shows error snackbar', (tester) async {
     await tester.pumpWidget(MaterialApp(
-      home: CreateCommunityScreen(testCreateCommunity: _fakeCreateFailure),
+      home: CreateCommunityScreen(testCreateCommunity: _fakeCreateFailure, testSkipNavigation: true),
     ));
 
     await tester.enterText(find.byType(TextField).first, 'My Community');
@@ -85,6 +113,7 @@ void main() {
     await tester.pumpWidget(MaterialApp(home: CreateCommunityScreen(
       testCreateCommunity: _fakeCreateSuccess,
       testAddUserToCommunity: _fakeAddUserFail,
+      testSkipNavigation: true,
     )));
 
     // simulate logged-in user

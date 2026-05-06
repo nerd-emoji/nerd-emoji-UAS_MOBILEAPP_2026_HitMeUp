@@ -19,6 +19,7 @@ class CreateCommunityScreen extends StatefulWidget {
     this.enableTestActions = false,
     this.testCreateCommunity,
     this.testAddUserToCommunity,
+    this.testSkipNavigation = false,
   });
 
   final Uint8List? testInitialPickedImageBytes;
@@ -34,6 +35,7 @@ class CreateCommunityScreen extends StatefulWidget {
   })? testCreateCommunity;
 
   final Future<void> Function({required int userId, required int communityId})? testAddUserToCommunity;
+  final bool testSkipNavigation;
 
   @override
   State<CreateCommunityScreen> createState() => _CreateCommunityScreenState();
@@ -580,11 +582,13 @@ class _CreateCommunityScreenState extends State<CreateCommunityScreen> {
             content: Text('Community "${name}" created successfully!')),
       );
 
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-            builder: (_) => CommunityChatScreen(community: community)),
-      );
+      if (widget.testSkipNavigation != true) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+              builder: (_) => CommunityChatScreen(community: community)),
+        );
+      }
     } catch (e) {
       if (!mounted) return;
 
