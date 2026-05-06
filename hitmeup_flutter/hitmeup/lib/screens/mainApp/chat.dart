@@ -280,6 +280,11 @@ class _ChatScreenState extends State<ChatScreen> {
                     width: 20,
                     height: 20,
                     fit: BoxFit.contain,
+                    errorBuilder: (_, __, ___) => const Icon(
+                      Icons.diamond,
+                      color: Color(0xFF4F8FF7),
+                      size: 20,
+                    ),
                   ),
                   const SizedBox(width: 8),
                   Text(
@@ -331,6 +336,11 @@ class _ChatScreenState extends State<ChatScreen> {
                               width: 30,
                               height: 30,
                               fit: BoxFit.contain,
+                              errorBuilder: (_, __, ___) => const Icon(
+                                Icons.memory,
+                                color: Color(0xFF4F8FF7),
+                                size: 30,
+                              ),
                             ),
                             Container(
                               width: 1,
@@ -546,8 +556,30 @@ class _CommunityItemTile extends StatelessWidget {
                 clipBehavior: Clip.antiAlias,
                 child: data.imageUrl != null
                   ? (data.imageIsAsset
-                    ? Image.asset(data.imageUrl!, fit: BoxFit.cover)
-                    : Image.network(data.imageUrl!, fit: BoxFit.cover))
+                    ? Image.asset(
+                        data.imageUrl!,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => Container(
+                            color: const Color(0xFFE0E0E0),
+                            child: const Icon(
+                                Icons.groups_rounded,
+                                color: Colors.white,
+                                size: 28,
+                            ),
+                        ),
+                    )
+                    : Image.network(
+                        data.imageUrl!,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => Container(
+                            color: const Color(0xFFE0E0E0),
+                            child: const Icon(
+                                Icons.groups_rounded,
+                                color: Colors.white,
+                                size: 28,
+                            ),
+                        ),
+                    ))
                     : DecoratedBox(
                         decoration: BoxDecoration(
                           color: data.iconBackground ?? const Color(0xFFD6E5EA),
@@ -673,13 +705,28 @@ class _RecentChatTile extends StatelessWidget {
                     width: 40,
                     height: 40,
                     child: isAssetAvatar
-                        ? Image.asset(data.avatarUrl, fit: BoxFit.cover)
+                        ? Image.asset(
+                            data.avatarUrl,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => Container(
+                              color: const Color(0xFFE0E0E0),
+                              child: const Icon(
+                                Icons.person,
+                                color: Colors.white,
+                                size: 24,
+                              ),
+                            ),
+                          )
                         : Image.network(
                             data.avatarUrl,
                             fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => Image.asset(
-                              'assets/FallBackProfile.png',
-                              fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => Container(
+                              color: const Color(0xFFE0E0E0),
+                              child: const Icon(
+                                Icons.person,
+                                color: Colors.white,
+                                size: 24,
+                              ),
                             ),
                           ),
                   ),

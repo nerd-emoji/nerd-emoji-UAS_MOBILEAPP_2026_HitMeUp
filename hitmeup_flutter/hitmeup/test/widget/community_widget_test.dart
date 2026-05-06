@@ -4,9 +4,80 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hitmeup/screens/mainApp/community.dart';
 import 'package:hitmeup/services/auth_session.dart';
+import 'package:hitmeup/services/chat_service.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../support/community_http_mocks.dart';
+
+MockClient createMockClient(CommunityHttpScenario scenario, {Duration responseDelay = Duration.zero}) {
+  return MockClient((request) async {
+    if (responseDelay > Duration.zero) {
+      await Future<void>.delayed(responseDelay);
+    }
+
+    final path = request.url.path;
+    final method = request.method;
+
+    if (method == 'GET' && path == '/api/communities/') {
+      if (scenario == CommunityHttpScenario.fetchError) {
+        return http.Response('{"detail": "failed"}', 500);
+      }
+
+      if (scenario == CommunityHttpScenario.empty) {
+        return http.Response('[]', 200);
+      }
+
+      return http.Response('''
+[
+  {
+    "id": 1,
+    "name": "Sample Community",
+    "description": "A place for testing",
+    "totalParticipants": 12,
+    "communityPicture": null
+  },
+  {
+    "id": 2,
+    "name": "Other Community",
+    "description": "Another testing space",
+    "totalParticipants": 5,
+    "communityPicture": null
+  }
+]
+''', 200);
+    }
+
+    if (method == 'POST' && RegExp(r'^/api/communities/\d+/add-member/$').hasMatch(path)) {
+      if (scenario == CommunityHttpScenario.joinError) {
+        return http.Response('{"detail": "join failed"}', 500);
+      }
+
+      return http.Response('{"detail": "added"}', 200);
+    }
+
+    if (method == 'GET' && RegExp(r'^/api/communities/\d+/$').hasMatch(path)) {
+      final parts = path.split('/').where((segment) => segment.isNotEmpty).toList();
+      final id = int.tryParse(parts[1]) ?? 1;
+      return http.Response('''
+{
+  "id": $id,
+  "name": "${id == 1 ? 'Sample Community' : 'Other Community'}",
+  "description": "Testing community details",
+  "totalParticipants": 12,
+  "communityPicture": null
+}
+''', 200);
+    }
+
+    if (method == 'GET' && path == '/api/community-messages/') {
+      return http.Response('[]', 200);
+    }
+
+    return http.Response('{"detail": "Not found"}', 404);
+  });
+}
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -22,25 +93,20 @@ void main() {
     Duration responseDelay = Duration.zero,
     required Future<void> Function() body,
   }) async {
-    await HttpOverrides.runZoned(() async {
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: CommunityScreen(),
-        ),
-      );
+    ChatService.client = createMockClient(scenario, responseDelay: responseDelay);
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: CommunityScreen(),
+      ),
+    );
 
-      if (responseDelay > Duration.zero) {
-        await tester.pump(responseDelay ~/ 2);
-      } else {
-        await tester.pump();
-      }
+    if (responseDelay > Duration.zero) {
+      await tester.pump(responseDelay ~/ 2);
+    } else {
+      await tester.pump();
+    }
 
-      await body();
-    }, createHttpClient: (_) {
-      return CommunityHttpMocks.createHttpClient(
-        scenario: scenario,
-      );
-    });
+    await body();
   }
 
   Future<void> runCommunityScenarioWithAuth(
@@ -158,7 +224,7 @@ void main() {
         await tester.pumpAndSettle();
 
         await tester.tap(find.byIcon(Icons.check_rounded));
-        await tester.pump();
+        await tester.pumpAndSettle();
 
         expect(find.text('Please log in to join communities.'), findsOneWidget);
       },

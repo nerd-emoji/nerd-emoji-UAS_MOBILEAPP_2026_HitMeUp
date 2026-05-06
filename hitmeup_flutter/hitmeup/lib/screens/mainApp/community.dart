@@ -70,6 +70,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
                 _errorMessage = null;
             });
 
+            await Future<void>.delayed(const Duration(milliseconds: 1));
             final communities = await ChatService.fetchCommunities();
             
             final communityRows = communities.map((community) {
@@ -314,17 +315,31 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                                 width: 130,
                                                 height: 130,
                                                 fit: BoxFit.cover,
+                                                errorBuilder: (_, __, ___) => Container(
+                                                    width: 130,
+                                                    height: 130,
+                                                    color: const Color(0xFFE0E0E0),
+                                                    child: const Icon(
+                                                        Icons.group,
+                                                        color: Colors.white,
+                                                        size: 40,
+                                                    ),
+                                                ),
                                             )
                                             : Image.network(
                                                 row.imageUrl,
                                                 width: 130,
                                                 height: 130,
                                                 fit: BoxFit.cover,
-                                                errorBuilder: (_, __, ___) => Image.asset(
-                                                    'assets/FallBackProfile.png',
+                                                errorBuilder: (_, __, ___) => Container(
                                                     width: 130,
                                                     height: 130,
-                                                    fit: BoxFit.cover,
+                                                    color: const Color(0xFFE0E0E0),
+                                                    child: const Icon(
+                                                        Icons.group,
+                                                        color: Colors.white,
+                                                        size: 40,
+                                                    ),
                                                 ),
                                             ),
                                     ),
@@ -378,43 +393,54 @@ class _CommunityScreenState extends State<CommunityScreen> {
         final userId = AuthSession.instance.userId;
         if (userId == null) {
             if (mounted) {
+                final messenger = ScaffoldMessenger.of(context);
                 Navigator.of(dialogContext).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Please log in to join communities.')),
-                );
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (!mounted) return;
+                    messenger.showSnackBar(
+                        const SnackBar(content: Text('Please log in to join communities.')),
+                    );
+                });
             }
             return;
         }
+
+        final messenger = ScaffoldMessenger.of(context);
+        final navigator = Navigator.of(context);
+        final dialogNavigator = Navigator.of(dialogContext);
 
         try {
             await ChatService.addUserToCommunity(userId: userId, communityId: row.id);
             if (!mounted) return;
 
-            Navigator.of(dialogContext).pop();
-        Navigator.of(context).push(
-            MaterialPageRoute(
-                builder: (_) => CommunityChatScreen(
-                    community: Community(
-                        id: row.id.toString(),
-                        name: row.title,
-                        participants: int.tryParse(
-                            row.participants.replaceAll(RegExp(r'[^0-9]'), ''),
-                        ) ?? 0,
-                        imageUrl: row.imageUrl,
+            dialogNavigator.pop();
+            navigator.push(
+                MaterialPageRoute(
+                    builder: (_) => CommunityChatScreen(
+                        community: Community(
+                            id: row.id.toString(),
+                            name: row.title,
+                            participants: int.tryParse(
+                                row.participants.replaceAll(RegExp(r'[^0-9]'), ''),
+                            ) ?? 0,
+                            imageUrl: row.imageUrl,
+                        ),
                     ),
                 ),
-            ),
-        );
+            );
         } catch (e) {
             if (!mounted) return;
 
-            Navigator.of(dialogContext).pop();
-            ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                    content: Text('Failed to join community. Please try again.'),
-                    backgroundColor: Colors.red,
-                ),
-            );
+            dialogNavigator.pop();
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (!mounted) return;
+                messenger.showSnackBar(
+                    const SnackBar(
+                        content: Text('Failed to join community. Please try again.'),
+                        backgroundColor: Colors.red,
+                    ),
+                );
+            });
         }
     }
 }
@@ -456,17 +482,31 @@ class _CommunityListTile extends StatelessWidget {
                                         width: 50,
                                         height: 50,
                                         fit: BoxFit.cover,
+                                        errorBuilder: (_, __, ___) => Container(
+                                            width: 50,
+                                            height: 50,
+                                            color: const Color(0xFFE0E0E0),
+                                            child: const Icon(
+                                                Icons.groups_rounded,
+                                                color: Colors.white,
+                                                size: 28,
+                                            ),
+                                        ),
                                     )
                                     : Image.network(
                                         data.imageUrl,
                                         width: 50,
                                         height: 50,
                                         fit: BoxFit.cover,
-                                        errorBuilder: (_, __, ___) => Image.asset(
-                                            'assets/FallBackProfile.png',
+                                        errorBuilder: (_, __, ___) => Container(
                                             width: 50,
                                             height: 50,
-                                            fit: BoxFit.cover,
+                                            color: const Color(0xFFE0E0E0),
+                                            child: const Icon(
+                                                Icons.groups_rounded,
+                                                color: Colors.white,
+                                                size: 28,
+                                            ),
                                         ),
                                     ),
                             ),

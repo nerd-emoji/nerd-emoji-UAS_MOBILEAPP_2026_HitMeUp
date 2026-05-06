@@ -3,18 +3,17 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
 
-  testWidgets('chat widget test', (tester) async {
+  testWidgets('settings widget test', (tester) async {
 
     await tester.pumpWidget(
       const MaterialApp(
         home: Scaffold(
-          body: Text('Chat Screen'),
+          body: Text('Settings Screen'),
         ),
       ),
     );
 
-    expect(find.text('Chat Screen'), findsOneWidget);
-
+    expect(find.text('Settings Screen'), findsOneWidget);
   });
 
 }

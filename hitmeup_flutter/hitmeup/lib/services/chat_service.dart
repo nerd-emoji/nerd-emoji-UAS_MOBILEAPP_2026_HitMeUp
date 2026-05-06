@@ -25,6 +25,8 @@ class ChatServiceException implements Exception {
 class ChatService {
   ChatService._();
 
+  static http.Client? client;
+
   static String get baseUrl => ApiConfig.baseUrl;
 
   /// Fetch all direct chats for the current user
@@ -67,7 +69,7 @@ class ChatService {
   /// Fetch all communities
   static Future<List<Map<String, dynamic>>> fetchCommunities() async {
     try {
-      final response = await http.get(
+      final response = await (client ?? http.Client()).get(
         Uri.parse('$baseUrl/api/communities/'),
         headers: {'Content-Type': 'application/json'},
       );
@@ -86,7 +88,7 @@ class ChatService {
   /// Fetch a single community by id
   static Future<Map<String, dynamic>> fetchCommunityById(int communityId) async {
     try {
-      final response = await http.get(
+      final response = await (client ?? http.Client()).get(
         Uri.parse('$baseUrl/api/communities/$communityId/'),
         headers: {'Content-Type': 'application/json'},
       );
@@ -949,7 +951,7 @@ class ChatService {
     required int communityId,
   }) async {
     try {
-      final response = await http.post(
+      final response = await (client ?? http.Client()).post(
         Uri.parse('$baseUrl/api/communities/$communityId/add-member/'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({

@@ -36,10 +36,12 @@ class CommunityHttpMocks {
 
   static HttpClient createHttpClient({
     CommunityHttpScenario scenario = CommunityHttpScenario.success,
+    Duration responseDelay = Duration.zero,
   }) {
     return _FakeHttpClient(
       scenario: scenario,
       resolver: _resolveResponse,
+      responseDelay: responseDelay,
     );
   }
 
